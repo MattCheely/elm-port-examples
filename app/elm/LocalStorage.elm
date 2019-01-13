@@ -1,4 +1,4 @@
-port module LocalStorage exposing (MessageError(..), StorageResult, clear, save, watchKeys)
+port module LocalStorage exposing (MessageError(..), clear, save, watchKeys)
 
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, decodeValue)
@@ -45,42 +45,38 @@ type MessageError
     | BadMessage Decode.Error
 
 
-type alias StorageResult msg =
-    Result MessageError msg
-
-
 watchKeys : (MessageError -> msg) -> List ( String, Decoder msg ) -> Sub msg
-watchKeys errMsg decoders =
+watchKeys onError decoders =
     let
         storageDecoders =
             Dict.fromList decoders
     in
-    storageEvent (handleStorageMessage storageDecoders)
-        |> Sub.map
-            (\result ->
-                case result of
-                    Err err ->
-                        errMsg err
-
-                    Ok msg ->
-                        msg
-            )
+    storageEvent (handleStorageMessage onError storageDecoders)
 
 
-handleStorageMessage : Dict String (Decoder msg) -> Value -> StorageResult msg
-handleStorageMessage storageDecoders value =
-    decodeValue (Decode.field "key" Decode.string) value
-        |> Result.mapError BadMessage
-        |> Result.andThen
-            (\key ->
-                case Dict.get key storageDecoders of
-                    Nothing ->
-                        Err (UnwatchedKey key)
+handleStorageMessage : (MessageError -> msg) -> Dict String (Decoder msg) -> Value -> msg
+handleStorageMessage onError storageDecoders value =
+    case decodeValue (Decode.field "key" Decode.string) value of
+        Err decodeError ->
+            onError (BadMessage decodeError)
 
-                    Just decoder ->
-                        decodeValue (Decode.field "value" decoder) value
-                            |> Result.mapError (BadValue key)
-            )
+        Ok key ->
+            case Dict.get key storageDecoders of
+                Nothing ->
+                    onError (UnwatchedKey key)
+
+                Just decoder ->
+                    extractValue onError key value decoder
+
+
+extractValue : (MessageError -> msg) -> String -> Value -> Decoder msg -> msg
+extractValue onError key value decoder =
+    case decodeValue (Decode.field "value" decoder) value of
+        Ok msg ->
+            msg
+
+        Err decodeError ->
+            onError (BadValue key decodeError)
 
 
 port storageEvent : (Value -> a) -> Sub a
