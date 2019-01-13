@@ -1,0 +1,12 @@
+#counter-app {
+  font-family: "sans-serif";
+  text-align: center;
+}
+
+.counter {
+  font-size: 3rem;
+}
+
+.controls button {
+  margin: 5px;
+}
