@@ -49,13 +49,22 @@ type alias StorageResult msg =
     Result MessageError msg
 
 
-watchKeys : List ( String, Decoder msg ) -> Sub (StorageResult msg)
-watchKeys decoders =
+watchKeys : (MessageError -> msg) -> List ( String, Decoder msg ) -> Sub msg
+watchKeys errMsg decoders =
     let
         storageDecoders =
             Dict.fromList decoders
     in
     storageEvent (handleStorageMessage storageDecoders)
+        |> Sub.map
+            (\result ->
+                case result of
+                    Err err ->
+                        errMsg err
+
+                    Ok msg ->
+                        msg
+            )
 
 
 handleStorageMessage : Dict String (Decoder msg) -> Value -> StorageResult msg

@@ -54,7 +54,7 @@ type Msg
     | ClearFloat
     | IncreaseInt
     | IncreaseFloat
-    | BadData LocalStorage.MessageError
+    | StorageError LocalStorage.MessageError
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,7 +78,7 @@ update msg model =
         ClearFloat ->
             ( model, LocalStorage.clear "theFloat" )
 
-        BadData error ->
+        StorageError error ->
             ( model, Cmd.none )
 
 
@@ -98,19 +98,10 @@ saveFloat float =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    LocalStorage.watchKeys
+    LocalStorage.watchKeys StorageError
         [ ( "theInt", Decode.map IntChanged (Decode.nullable Decode.int) )
         , ( "theFloat", Decode.map FloatChanged (Decode.nullable Decode.float) )
         ]
-        |> Sub.map
-            (\result ->
-                case result of
-                    Ok msg ->
-                        msg
-
-                    Err error ->
-                        BadData error
-            )
 
 
 
