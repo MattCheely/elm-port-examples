@@ -3,6 +3,14 @@
  * the browser's localStorage API.
  */
 export function bind(app) {
+  // Exit predictably if the ports aren't in use in Elm
+  if (!app.ports || !(app.ports.toStorage && app.ports.storageEvent)) {
+    console.log(
+      "Could not find 'toStorage' and 'fromStorage' ports on app. They may not be in use yet."
+    );
+    return;
+  }
+
   // Handle events from Elm
   app.ports.toStorage.subscribe(message => {
     if (message.msgType == "save") {
@@ -14,7 +22,6 @@ export function bind(app) {
 
   // Broadcast localStorage changes to Elm
   window.addEventListener("storage", function(e) {
-    console.log(e);
     if (event.storageArea == localStorage) {
       // Most use cases will only need a subset of the storage event
       // data, but there's more available if you need it.
