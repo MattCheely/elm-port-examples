@@ -15,7 +15,15 @@ The goal of this repo is twofold:
 [localStorage](localStorage/)
 
 
-## Contributing an Example
+## What if there's no example for my use case?
+
+Well, it's early days yet. Hopefully we'll have more examples soon. In the meantime, please share the specifics 
+of your use case on the [Elm Discourse](https://discourse.elm-lang.org/). Be sure to let folks know what you've tried already
+and what your goals are. You're also welcome to reach out to the maintainer for this repo, [Matt Cheely](https://discourse.elm-lang.org/u/matt.cheely) 
+in your request and he'll try to help out when he can. Hopefully the community can help put together a nice example for your 
+use case that can be added back here, or maybe even come up with a pure Elm solution if you're just looking for a nice library for something.
+
+## Contributing an example
 
 Feel free to open a PR with an example app that shows a minimal use of ports to solve
 a specific problem. Some things to consider before submitting:
