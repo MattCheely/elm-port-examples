@@ -23,3 +23,4 @@ a specific problem. Some things to consider before submitting:
  - We want to show specific cases of direct interaction with JS APIs
  - Avoid using a port helper library for your solution. We want developers to be able to see all of the code involved.
  - Try to create the minimal app that exercises the use case. The focus should be on the design of the port and port-adjacent code, not amazing app features. 
+ - Include an explanation of the reasons for the specific approach you've taken, preferably in comments within the code.
