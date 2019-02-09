@@ -13,6 +13,7 @@ The goal of this repo is twofold:
 ## Examples
 
 [localStorage](localStorage/)
+[notifications](notification/)
 
 
 ## What if there's no example for my use case?
