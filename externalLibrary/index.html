@@ -1,0 +1,171 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Elm + Plaid Link</title>
+    <meta name="description" content="Integrating Plaid Link into an Elm application">
+    <meta name="author" content="Jesse Cooke">
+  </head>
+
+  <body>
+    <div id="plaid_app" data-name="Jesse Cooke"></div>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script src="/main.js"></script>
+    <script>
+      const ElmPlaid = {
+        mockHandler: function(products) {
+          const self = this
+          return {
+            products: products,
+            open: function() {
+              if (confirm("OK to link, Cancel to exit")) {
+                this.onSuccess(self.metadata.public_token, self.metadata)
+              } else {
+                this.onExit(self.exitError, self.exitMetadata)
+              }
+            },
+            onSuccess: function(public_token, metadata) {
+              self.app.ports.itemLinked.send(self.metadata)
+            },
+            onExit: function(err, metadata) {
+              self.app.ports.linkExit.send({ error: err, metadata: metadata })
+            }
+          }
+        },
+        liveHandler: function(products) {
+          const self = this
+
+          return Plaid.create({
+            clientName: self.config.plaidClientName,
+            env: self.config.plaidEnv,
+            // Replace with your public_key from the Dashboard
+            key: self.config.plaidPublicKey,
+            product: products,
+            // Optional, use webhooks to get transaction and error updates
+            webhook: self.config.webhookUrl,
+            onLoad: function() {
+              // Optional, called when Link loads
+            },
+            onSuccess: function(public_token, metadata) {
+              // Send the public_token to your app server.
+              // The metadata object contains info about the institution the
+              // user selected and the account ID or IDs, if the
+              // Select Account view is enabled.
+              self.app.ports.itemLinked.send(metadata)
+            },
+            onExit: function(err, metadata) {
+              // The user exited the Link flow.
+              if (err != null) {
+                // The user encountered a Plaid API error prior to exiting.
+              }
+              self.app.ports.linkExit.send({ error: err, metadata: metadata })
+              // metadata contains information about the institution
+              // that the user selected and the most recent API request IDs.
+              // Storing this information can be helpful for support.
+            },
+            onEvent: function(eventName, metadata) {
+              // Optionally capture Link flow events, streamed through
+              // this callback as your users connect an Item to Plaid.
+              // For example:
+              // eventName = "TRANSITION_VIEW"
+              // metadata  = {
+              //   link_session_id: "123-abc",
+              //   mfa_type:        "questions",
+              //   timestamp:       "2017-09-14T14:42:19.350Z",
+              //   view_name:       "MFA",
+              // }
+            }
+          })
+        },
+        metadata: {
+          "institution": {
+            "name": "First Platypus Bank",
+            "institution_id": "ins_109508"
+          },
+          "account": {
+            "id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
+            "name": "Plaid Checking",
+            "type": "depository",
+            "subtype": "checking",
+            "mask": "0000"
+          },
+          "accounts": [
+            {
+              "id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
+              "name": "Plaid Checking",
+              "mask": "3333",
+              "type": "depository",
+              "subtype": "checking"
+            },
+            {
+              "id": "LvVBZd7vlVcD95npBx3zTa9V7wad91UP477zV",
+              "name": "Plaid Saving",
+              "mask": "4444",
+              "type": "depository",
+              "subtype": "savings"
+            },
+            {
+              "id": "cD95npBx3zTa9V7wad91UP477zV",
+              "name": "My Credit Card",
+              "mask": "9393",
+              "type": "credit",
+              "subtype": "credit card"
+            }
+          ],
+          "link_session_id": "5a010bea-a8d4-4b35-915c-0272bec29caf",
+          "public_token": "public-sandbox-b914fc91-b9fb-4328-bf5b-68e6f18c94ee"
+        },
+        exitError: {
+          display_message: "The credentials were ...",
+          error_code: "INVALID_CREDENTIALS",
+          error_message: "the credentials were ...",
+          error_type: "ITEM_ERROR",
+         },
+        exitMetadata: {
+          link_session_id: "dc21685c-192e-4969-b4e9-bab890daae31",
+          institution: {
+            name: "Wells Fargo",
+            institution_id: "ins_4"
+          },
+          status: "institution_not_found"
+        },
+        init: function() {
+          const element = document.getElementById("plaid_app")
+          if (!element) {
+            console.error("No element to mount the app")
+            return
+          }
+          const self = this
+          self.config = element.dataset
+          self.app = Elm.Main.init({
+            node: element,
+            flags: self.config.name
+          })
+
+          self.app.ports.openPlaidLink.subscribe(function(products) {
+            const handler = self.mockHandler(products)
+            handler.open()
+          })
+
+          self.app.ports.jsonConsole.subscribe(function(json) {
+            console.log(json)
+          })
+        }
+      }
+
+      function ready(fn) {
+        if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+          fn()
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      }
+
+      ready(function() {
+        ElmPlaid.init()
+      })
+    </script>
+  </body>
+</html>
