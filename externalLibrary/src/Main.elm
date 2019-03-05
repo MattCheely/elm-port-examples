@@ -136,8 +136,17 @@ update msg model =
                 ( model, jsonConsole json )
 
 
-        LinkExited itemExit ->
-          ( model, Cmd.none )
+        LinkExited exit ->
+            case exit of
+                Ok itemExit ->
+                  ( Debug.log "item" { model | stage = Exited, itemExit = Just itemExit }
+                  , Cmd.none
+                  )
+
+                Err err ->
+                  ( Debug.log "error :(" { model | stage = Exited }
+                  , Cmd.none
+                  )
 
 
 
@@ -160,6 +169,9 @@ viewFor model =
 
         Finish ->
             finishView model
+
+        Exited ->
+            exitedView model
 
 
 startView : Model -> Html Msg
@@ -197,13 +209,16 @@ banksLinkedSoFar items =
                 numberOfAccounts =
                     item.accounts |> List.length |> String.fromInt
 
+                numberOfAccountsText =
+                    "- " ++ numberOfAccounts ++ " accounts"
+
                 accountNames =
                     List.map .name item.accounts
 
                 accounts =
                     String.join ", " accountNames
             in
-            [ li [] [ text item.institution.name, span [ title accounts ] [ text numberOfAccounts ] ]
+            [ li [] [ text item.institution.name, span [ title accounts ] [ text numberOfAccountsText ] ]
             ]
         )
         items
@@ -213,7 +228,24 @@ finishView : Model -> Html Msg
 finishView model =
     div []
         [ h4 [] [ text "Thank you for linking your accounts." ]
-        , text "Please hand the device back to the associate"
+        , text "Here's where you might trigger an HTTP call."
+        ]
+
+
+exitedView : Model -> Html Msg
+exitedView model =
+    let
+        sessionId =
+          case model.itemExit of
+            Just ie ->
+              ie.metadata.sessionId
+
+            Nothing ->
+              "No sessionId"
+    in
+    div []
+        [ h4 [] [ text "Link Exited" ]
+        , text ("SessionId: " ++ sessionId)
         ]
 
 
@@ -279,3 +311,6 @@ nextStage stage =
 
         Finish ->
             Finish
+
+        Exited ->
+            Exited

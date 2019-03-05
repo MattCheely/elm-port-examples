@@ -135,7 +135,7 @@ exitMetadata =
     map3
         ExitMetadata
         (field "link_session_id" string)
-        (field "institution" institution)
+        (field "institution" (maybe institution))
         (field "status" metadataStatus)
 
 

@@ -5,6 +5,7 @@ type alias Model =
     { items : List Item
     , name : String
     , stage : Stage
+    , itemExit : Maybe ItemExit
     }
 
 
@@ -13,6 +14,7 @@ initialModel =
     { items = []
     , name = ""
     , stage = Start
+    , itemExit = Nothing
     }
 
 
@@ -68,6 +70,7 @@ type Stage
     = Start
     | LinkAnotherBank
     | Finish
+    | Exited
 
 
 type alias ExitError =
@@ -80,7 +83,7 @@ type alias ExitError =
 
 type alias ExitMetadata =
     { sessionId : String
-    , institution : Institution
+    , institution : Maybe Institution
     , status : MetadataStatus
     }
 

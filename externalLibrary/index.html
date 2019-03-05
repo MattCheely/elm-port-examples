@@ -10,7 +10,7 @@
   </head>
 
   <body>
-    <div id="plaid_app" data-name="Jesse Cooke"></div>
+    <div id="plaid_app" data-name="Jesse Cooke" data-plaid-client-name="Elm Community" data-plaid-public-key="a9536dd5db33d7bbbdb096c56a1593" data-plaid-env="sandbox"></div>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script src="/main.js"></script>
     <script>
@@ -44,7 +44,7 @@
             key: self.config.plaidPublicKey,
             product: products,
             // Optional, use webhooks to get transaction and error updates
-            webhook: self.config.webhookUrl,
+            //webhook: config.webhookUrl,
             onLoad: function() {
               // Optional, called when Link loads
             },
@@ -60,6 +60,7 @@
               if (err != null) {
                 // The user encountered a Plaid API error prior to exiting.
               }
+              console.log(metadata)
               self.app.ports.linkExit.send({ error: err, metadata: metadata })
               // metadata contains information about the institution
               // that the user selected and the most recent API request IDs.
@@ -137,15 +138,16 @@
             console.error("No element to mount the app")
             return
           }
+
           const self = this
-          self.config = element.dataset
+          self.config = Object.assign({}, element.dataset)
           self.app = Elm.Main.init({
             node: element,
-            flags: self.config.name
+            flags: element.dataset.name
           })
 
           self.app.ports.openPlaidLink.subscribe(function(products) {
-            const handler = self.mockHandler(products)
+            const handler = self.liveHandler(products)
             handler.open()
           })
 
