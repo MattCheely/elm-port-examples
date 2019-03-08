@@ -19,3 +19,10 @@ You can run this example by using `elm-live`.
 ```
 
 then open up [http://localhost:8000/](http://localhost:8000/) and play around.
+
+## Development Tips
+
+I needed to iterate the flow (the actual app has many steps, like a wizard)
+so it was necessary to build in a `mockHandler` which would behave like the
+real Plaid `liveHandler` but pass data via a super basic UI. It requires
+a little more code & mock data, but was key to actual development.
