@@ -14,7 +14,7 @@ The goal of this repo is twofold:
 
 * [localStorage](localStorage/)
 * [notifications](notification/)
-* [external_library](externalLibrary/)
+* [externalLibrary](externalLibrary/)
 
 
 ## What if there's no example for my use case?
