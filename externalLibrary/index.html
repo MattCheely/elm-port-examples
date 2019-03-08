@@ -40,43 +40,13 @@
           return Plaid.create({
             clientName: self.config.plaidClientName,
             env: self.config.plaidEnv,
-            // Replace with your public_key from the Dashboard
             key: self.config.plaidPublicKey,
             product: products,
-            // Optional, use webhooks to get transaction and error updates
-            //webhook: config.webhookUrl,
-            onLoad: function() {
-              // Optional, called when Link loads
-            },
             onSuccess: function(public_token, metadata) {
-              // Send the public_token to your app server.
-              // The metadata object contains info about the institution the
-              // user selected and the account ID or IDs, if the
-              // Select Account view is enabled.
               self.app.ports.itemLinked.send(metadata)
             },
             onExit: function(err, metadata) {
-              // The user exited the Link flow.
-              if (err != null) {
-                // The user encountered a Plaid API error prior to exiting.
-              }
-              console.log(metadata)
               self.app.ports.linkExit.send({ error: err, metadata: metadata })
-              // metadata contains information about the institution
-              // that the user selected and the most recent API request IDs.
-              // Storing this information can be helpful for support.
-            },
-            onEvent: function(eventName, metadata) {
-              // Optionally capture Link flow events, streamed through
-              // this callback as your users connect an Item to Plaid.
-              // For example:
-              // eventName = "TRANSITION_VIEW"
-              // metadata  = {
-              //   link_session_id: "123-abc",
-              //   mfa_type:        "questions",
-              //   timestamp:       "2017-09-14T14:42:19.350Z",
-              //   view_name:       "MFA",
-              // }
             }
           })
         },
