@@ -18,4 +18,4 @@ You can run this example by using `elm-live`.
 > elm-live -s index.html src/Main.elm -- --output=main.js
 ```
 
-then open up [http://localhost:8000/] and play around.
+then open up [http://localhost:8000/](http://localhost:8000/) and play around.
