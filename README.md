@@ -12,8 +12,9 @@ The goal of this repo is twofold:
  
 ## Examples
 
-[localStorage](localStorage/)
-[notifications](notification/)
+* [localStorage](localStorage/)
+* [notifications](notification/)
+* [external_library](externalLibrary/)
 
 
 ## What if there's no example for my use case?
