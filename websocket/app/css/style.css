@@ -1,0 +1,24 @@
+body {
+  font-family: "sans-serif";
+}
+
+.connectionState {
+    margin-bottom: 20px;
+}
+
+.controls button {
+    margin-right: 10px;
+}
+
+.stringMessages {
+    display: flex;
+}
+
+.stringMessages .header {
+    font-weight: bold;
+}
+
+.stringMessages > div {
+    margin: 5px;
+}
+
