@@ -14,7 +14,8 @@ The goal of this repo is twofold:
 
 [localStorage](localStorage/)
 [notifications](notification/)
-
+[websockets](websocket/)
+[canvas](canvas/)
 
 ## What if there's no example for my use case?
 
