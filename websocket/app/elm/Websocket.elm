@@ -47,13 +47,21 @@ sendString connection text =
 -- INBOUND
 
 
-{-| The types of messages we track from JS. We are notified when the socket
-is connected, when a (string) message comes in, when the socket is closed and
-on an error. There's a catch all event for messages we can't parse.
+{-| The websocket events we track from JS. All of them contain details about the connection
+where the event originated. Some have additional payloads.
+
+  - Connected: A websocket connection is successfully established
+  - StringMessage: We received string data on a websocket connection (includes the string)
+  - Closed: A websocket connection was closed (includes a count of buffered but unsent bytes)
+  - Error: There was a connection error (includes the error code)
+  - BadMessage: JS sent a message that could not be parsed.
+
 -}
 type Event
     = Connected ConnectionInfo
-    | StringMessage String
+    | StringMessage ConnectionInfo String
+    | Closed ConnectionInfo Int
+    | Error ConnectionInfo Int
     | BadMessage String
 
 
@@ -81,8 +89,19 @@ eventDecoder =
                             (Decode.field "msg" connectionDecoder)
 
                     "stringMessage" ->
-                        Decode.map StringMessage
-                            (Decode.field "msg" Decode.string)
+                        Decode.map2 StringMessage
+                            (Decode.field "msg" connectionDecoder)
+                            (Decode.at [ "msg", "data" ] Decode.string)
+
+                    "closed" ->
+                        Decode.map2 Closed
+                            (Decode.field "msg" connectionDecoder)
+                            (Decode.at [ "msg", "unsentBytes" ] Decode.int)
+
+                    "error" ->
+                        Decode.map2 Error
+                            (Decode.field "msg" connectionDecoder)
+                            (Decode.at [ "msg", "code" ] Decode.int)
 
                     _ ->
                         Decode.succeed (BadMessage ("Unknown message type: " ++ msgType))

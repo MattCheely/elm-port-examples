@@ -39,8 +39,8 @@ export function bind(app) {
     let socket = new WebSocket(request.url, request.protocols);
 
     socket.onopen = openHandler.bind(null, toElm, socket, request.url);
-    socket.onmessage = messageHandler.bind(null, toElm, request.url);
-    socket.onerror = errorHandler.bind(null, toElm, request.url);
+    socket.onmessage = messageHandler.bind(null, toElm, socket, request.url);
+    socket.onerror = errorHandler.bind(null, toElm, socket, request.url);
     socket.onclose = closeHandler.bind(null, toElm, sockets, request.url);
 
     sockets[request.url] = socket;
@@ -77,11 +77,17 @@ function openHandler(toElm, socket, url, event) {
 }
 
 // When we get a message from the socket, we send it to Elm.
-function messageHandler(toElm, url, event) {
+function messageHandler(toElm, socket, url, event) {
   if (typeof event.data == "string") {
     toElm.send({
       msgType: "stringMessage",
-      msg: event.data
+      msg: {
+        url: url,
+        binaryType: socket.binaryType,
+        extensions: socket.extensions,
+        protocol: socket.protocol,
+        data: event.data
+      }
     });
   } else {
     // We do not handle incoming binary messages.
@@ -94,11 +100,14 @@ function messageHandler(toElm, url, event) {
 }
 
 // Send errors to Elm
-function errorHandler(toElm, url, event) {
+function errorHandler(toElm, socket, url, event) {
   toElm.send({
     msgType: "error",
     msg: {
       url: url,
+      binaryType: socket.binaryType,
+      extensions: socket.extensions,
+      protocol: socket.protocol,
       code: event.code
     }
   });
@@ -114,7 +123,10 @@ function closeHandler(toElm, sockets, url, event) {
     msgType: "closed",
     msg: {
       url: url,
-      unsetBytes: socket.bufferedAmount
+      binaryType: socket.binaryType,
+      extensions: socket.extensions,
+      protocol: socket.protocol,
+      unsentBytes: socket.bufferedAmount
     }
   });
 }
