@@ -8,6 +8,8 @@ import Json.Encode as Encode exposing (Value)
 -- OUTBOUND
 
 
+{-| Metadata about a Websocket connection
+-}
 type alias ConnectionInfo =
     { protocol : String
     , extensions : String
@@ -15,6 +17,8 @@ type alias ConnectionInfo =
     }
 
 
+{-| Requests a connection to the provided URL with a list of acceptable protocols. It is fine for the list to be empty.
+-}
 connect : String -> List String -> Cmd msg
 connect url protocols =
     message "connect"
@@ -26,6 +30,8 @@ connect url protocols =
         |> toSocket
 
 
+{-| Requests a string to be sent out on the provided socket connection.
+-}
 sendString : ConnectionInfo -> String -> Cmd msg
 sendString connection text =
     message "sendString"
@@ -41,6 +47,10 @@ sendString connection text =
 -- INBOUND
 
 
+{-| The types of messages we track from JS. We are notified when the socket
+is connected, when a (string) message comes in, when the socket is closed and
+on an error. There's a catch all event for messages we can't parse.
+-}
 type Event
     = Connected ConnectionInfo
     | StringMessage String
@@ -91,6 +101,8 @@ connectionDecoder =
 -- HELPERS
 
 
+{-| Creates a standard message object structure for JS.
+-}
 message : String -> Value -> Value
 message msgType msg =
     Encode.object
