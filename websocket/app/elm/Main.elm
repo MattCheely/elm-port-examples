@@ -26,16 +26,22 @@ main =
 
 
 type alias Model =
-    { socketInfo : Maybe Websocket.ConnectionInfo
+    { socketInfo : SocketStatus
     , toSend : String
     , sentMessages : List String
     , recievedMessages : List String
     }
 
 
+type SocketStatus
+    = Unopened
+    | Connected Websocket.ConnectionInfo
+    | Closed Int
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { socketInfo = Nothing
+    ( { socketInfo = Unopened
       , toSend = "ping!"
       , sentMessages = []
       , recievedMessages = []
@@ -50,6 +56,7 @@ init _ =
 
 type Msg
     = SocketConnect Websocket.ConnectionInfo
+    | SocketClosed Int
     | SendStringChanged String
     | RecievedString String
     | SendString
@@ -60,19 +67,22 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SocketConnect socketInfo ->
-            ( { model | socketInfo = Just socketInfo }, Cmd.none )
+            ( { model | socketInfo = Connected socketInfo }, Cmd.none )
+
+        SocketClosed unsentBytes ->
+            ( { model | socketInfo = Closed unsentBytes }, Cmd.none )
 
         SendStringChanged string ->
             ( { model | toSend = string }, Cmd.none )
 
         SendString ->
             case model.socketInfo of
-                Just socketInfo ->
+                Connected socketInfo ->
                     ( { model | sentMessages = model.toSend :: model.sentMessages }
                     , Websocket.sendString socketInfo model.toSend
                     )
 
-                Nothing ->
+                _ ->
                     ( model, Cmd.none )
 
         RecievedString message ->
@@ -92,6 +102,10 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
+{-| Set up subscriptions and map socket events to app events. Because we are
+only dealing with a single websocket connection, we can mostly ignore the connection
+details and always assume data is coming in from the single open socket.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Websocket.events
@@ -100,10 +114,16 @@ subscriptions model =
                 Websocket.Connected info ->
                     SocketConnect info
 
-                StringMessage message ->
+                Websocket.StringMessage info message ->
                     RecievedString message
 
-                BadMessage error ->
+                Websocket.Closed _ unsentBytes ->
+                    SocketClosed unsentBytes
+
+                Websocket.Error _ code ->
+                    Error ("Websocket Error: " ++ String.fromInt code)
+
+                Websocket.BadMessage error ->
                     Error error
         )
 
@@ -120,16 +140,24 @@ view model =
         ]
 
 
+connectionState : Model -> Html Msg
 connectionState model =
     div [ class "connectionState" ]
         [ case model.socketInfo of
-            Nothing ->
+            Unopened ->
                 text "Connecting..."
 
-            Just info ->
+            Connected info ->
                 div []
                     [ text "Connected to "
                     , text info.url
+                    ]
+
+            Closed unsent ->
+                div []
+                    [ text " Closed with "
+                    , text (String.fromInt unsent)
+                    , text " bytes unsent."
                     ]
         ]
 
