@@ -5,7 +5,7 @@ import Html exposing (Html, button, div, input, pre, text)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onClick, onInput)
 import Http
-import Websocket exposing (Event(..))
+import WebSocket exposing (Event(..))
 
 
 
@@ -35,7 +35,7 @@ type alias Model =
 
 type SocketStatus
     = Unopened
-    | Connected Websocket.ConnectionInfo
+    | Connected WebSocket.ConnectionInfo
     | Closed Int
 
 
@@ -46,7 +46,7 @@ init _ =
       , sentMessages = []
       , recievedMessages = []
       }
-    , Websocket.connect "wss://echo.websocket.org" []
+    , WebSocket.connect "wss://echo.websocket.org" []
     )
 
 
@@ -55,7 +55,7 @@ init _ =
 
 
 type Msg
-    = SocketConnect Websocket.ConnectionInfo
+    = SocketConnect WebSocket.ConnectionInfo
     | SocketClosed Int
     | SendStringChanged String
     | RecievedString String
@@ -79,7 +79,7 @@ update msg model =
             case model.socketInfo of
                 Connected socketInfo ->
                     ( { model | sentMessages = model.toSend :: model.sentMessages }
-                    , Websocket.sendString socketInfo model.toSend
+                    , WebSocket.sendString socketInfo model.toSend
                     )
 
                 _ ->
@@ -108,22 +108,22 @@ details and always assume data is coming in from the single open socket.
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Websocket.events
+    WebSocket.events
         (\event ->
             case event of
-                Websocket.Connected info ->
+                WebSocket.Connected info ->
                     SocketConnect info
 
-                Websocket.StringMessage info message ->
+                WebSocket.StringMessage info message ->
                     RecievedString message
 
-                Websocket.Closed _ unsentBytes ->
+                WebSocket.Closed _ unsentBytes ->
                     SocketClosed unsentBytes
 
-                Websocket.Error _ code ->
-                    Error ("Websocket Error: " ++ String.fromInt code)
+                WebSocket.Error _ code ->
+                    Error ("WebSocket Error: " ++ String.fromInt code)
 
-                Websocket.BadMessage error ->
+                WebSocket.BadMessage error ->
                     Error error
         )
 

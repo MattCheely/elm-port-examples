@@ -1,4 +1,4 @@
-port module Websocket exposing (ConnectionInfo, Event(..), connect, events, sendString)
+port module WebSocket exposing (ConnectionInfo, Event(..), connect, events, sendString)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
